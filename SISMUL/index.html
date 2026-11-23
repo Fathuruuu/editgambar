@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editor Citra Berbasis Web - Professional Image Studio</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Initial Splash / App Loading Page -->
+  <div id="app-loading-screen" class="app-loading-screen" style="display: none;">
+    <div class="loading-content">
+      <div class="loading-logo-glow">
+        <div class="loading-logo">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+        </div>
+      </div>
+      <h2 class="loading-title">Editor Citra Berbasis Web</h2>
+      <p class="loading-subtitle">Studio Pengolahan Citra Digital & Kompresi</p>
+
+      <div class="loading-bar-wrap">
+        <div class="loading-bar" id="loading-bar"></div>
+      </div>
+      <div class="loading-status-text" id="loading-status-text">Memuat modul multimedia...</div>
+
+      <div class="loading-pills">
+        <span>RGB &bull; HSI &bull; CMYK &bull; YCbCr</span>
+        <span>Subsampling 4:2:0</span>
+        <span>Sanitasi EXIF</span>
+        <span>PSNR Real-Time</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Processing Spinner Overlay (for image processing/upload operations) -->
+  <div id="processing-overlay" class="processing-overlay" style="display: none;">
+    <div class="processing-card">
+      <div class="spinner-ring"></div>
+      <h4 id="processing-title">Memproses Citra...</h4>
+      <p id="processing-detail" class="text-xs text-muted">Menghitung piksel matematika...</p>
+    </div>
+  </div>
+
+  <div class="app-layout">
+    <!-- Top Navigation Bar -->
+    <header class="top-nav">
+      <div class="brand-section">
+        <div class="brand-logo">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>Editor Citra Berbasis Web</h1>
+          <span class="subtitle">Studio Pengolahan & Kompresi Citra Modern</span>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <!-- Hidden file input for opening photos -->
+        <input type="file" id="file-input" accept="image/jpeg,image/png,image/webp,image/bmp,image/gif" style="display: none;">
+        
+        <!-- Primary Upload Button -->
+        <button id="btn-open-file" class="btn btn-primary btn-upload-prominent" title="Pilih foto dari komputer atau HP">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          <strong>Unggah Foto</strong>
+        </button>
+
+        <!-- Camera Button -->
+        <button id="btn-camera" class="btn btn-secondary" title="Ambil foto langsung dari kamera/webcam">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+            <circle cx="12" cy="13" r="4"></circle>
+          </svg>
+          Kamera
+        </button>
+
+        <!-- Sample Images Dropdown -->
+        <div class="dropdown">
+          <button id="btn-sample-dropdown" class="btn btn-secondary">
+            Contoh Citra
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div class="dropdown-menu" id="sample-menu">
+            <button class="dropdown-item" data-sample="assets/sample-testchart.png">
+              <strong>Pola Uji (Test Chart)</strong>
+              <span>SMPTE bar, gradien RGB, kisi resolusi</span>
+            </button>
+            <button class="dropdown-item" data-sample="assets/sample-scenery.jpg">
+              <strong>Pemandangan Senja (Landscape)</strong>
+              <span>Gradasi warna alami & bayangan air</span>
+            </button>
+          </div>
+        </div>
+
+        <button id="btn-nav-clear" class="btn btn-secondary btn-danger-hover" title="Hilangkan gambar saat ini dan ganti foto baru" style="display: none;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          Hilangkan Gambar
+        </button>
+
+
+        <div class="divider-vertical"></div>
+
+        <button id="btn-undo" class="btn btn-icon" title="Undo (Urungkan)" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="1 4 1 10 7 10"></polyline>
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+          </svg>
+        </button>
+
+        <button id="btn-redo" class="btn btn-icon" title="Redo (Ulangi)" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+        </button>
+
+        <button id="btn-reset" class="btn btn-icon" title="Reset ke Citra Asli">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2.5 2v6h6M21.5 22v-6h-6"></path>
+            <path d="M22 11.5A10 10 0 0 0 3.2 7.2M2 12.5a10 10 0 0 0 18.8 4.3"></path>
+          </svg>
+        </button>
+
+        <div class="divider-vertical"></div>
+
+        <button id="btn-compare-toggle" class="btn btn-secondary" title="Bandingkan Sebelum vs Sesudah" style="display: none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="2" x2="12" y2="22"></line>
+            <polyline points="19 12 12 19 5 12"></polyline>
+          </svg>
+          Bandingkan
+        </button>
+
+        <button id="btn-export-quick" class="btn btn-success" title="Ekspor & Unduh Gambar" style="display: none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Unduh Hasil
+        </button>
+
+        <!-- Mobile Sidebar / Feature Drawer Toggle Button -->
+        <button id="btn-toggle-sidebar" class="btn btn-primary mobile-menu-btn" title="Buka Panel Fitur & Alat Edit Lengkap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+          <span>Panel Edit</span>
+        </button>
+
+        <button id="btn-team-info" class="btn btn-ghost" title="Informasi Tim & Proposal">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+        </button>
+
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="main-body">
+      <!-- Left/Center Canvas Viewport Area -->
+      <section class="canvas-viewport" id="viewport">
+        
+        <!-- Prominent Dropzone / Empty State -->
+        <div class="empty-state" id="empty-state">
+          <div class="empty-box" id="empty-dropzone">
+            <div class="upload-icon-circle">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+            </div>
+            <h2>Unggah Foto untuk Diedit</h2>
+            <p>Tarik & lepaskan foto Anda ke area ini, atau pilih salah satu opsi di bawah:</p>
+            
+            <div class="empty-actions">
+              <button class="btn btn-primary btn-lg" id="btn-empty-choose">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                Pilih Foto dari Komputer / HP
+              </button>
+              <button class="btn btn-secondary btn-lg" id="btn-empty-camera">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+                Ambil dari Kamera
+              </button>
+            </div>
+
+            <div class="paste-hint">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+              </svg>
+              <span>Tips: Anda juga bisa menempelkan (Paste) hasil screenshot atau salinan gambar dengan <strong>Ctrl + V</strong></span>
+            </div>
+
+            <div class="sample-hint-box">
+              <span>Ingin mencoba tanpa foto sendiri?</span>
+              <button class="btn btn-ghost btn-sm text-cyan" id="btn-load-sample-quick">
+                Coba dengan Citra Pola Uji (Test Chart) &rarr;
+              </button>
+            </div>
+
+            <div class="privacy-pill">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+              Privasi Terjamin 100%: Citra diproses langsung di browser lokal Anda tanpa dikirim ke server mana pun
+            </div>
+          </div>
+        </div>
+
+        <!-- Canvas Container with Interactive Zoom/Pan -->
+        <div class="canvas-wrapper" id="canvas-wrapper" style="display: none;">
+          <!-- Floating "Ganti Foto" pill -->
+          <!-- Floating "Ganti Foto" & "Hilangkan Foto" pill bar -->
+          <div class="canvas-top-bar">
+            <button id="btn-change-image" class="btn btn-primary btn-sm pill-btn drop-btn" title="Klik atau tarik file gambar langsung ke tombol ini">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              Tarik / Unggah Gambar Baru
+            </button>
+            <button id="btn-clear-image" class="btn btn-secondary btn-sm pill-btn btn-danger-hover" title="Hilangkan gambar saat ini dan kembali ke menu awal">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+              Hilangkan Gambar
+            </button>
+          </div>
+
+          <!-- Main Working Canvas -->
+          <canvas id="main-canvas"></canvas>
+
+          <!-- Interactive Crop Overlay -->
+          <div id="crop-overlay" class="crop-overlay" style="display: none;">
+            <div class="crop-box" id="crop-box">
+              <div class="crop-handle handle-nw" data-handle="nw"></div>
+              <div class="crop-handle handle-ne" data-handle="ne"></div>
+              <div class="crop-handle handle-sw" data-handle="sw"></div>
+              <div class="crop-handle handle-se" data-handle="se"></div>
+              <div class="crop-guidelines"></div>
+            </div>
+          </div>
+
+          <!-- Before/After Split Comparison Slider Overlay -->
+          <div id="compare-container" class="compare-container" style="display: none;">
+            <canvas id="compare-canvas"></canvas>
+            <div class="compare-handle" id="compare-handle">
+              <div class="compare-line"></div>
+              <div class="compare-knob">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </div>
+            </div>
+            <span class="compare-label label-before">Asli (Original)</span>
+            <span class="compare-label label-after">Hasil (Processed)</span>
+          </div>
+
+          <!-- Floating Magnifier Loupe Overlay -->
+          <div id="floating-loupe" class="floating-loupe" style="display: none;">
+            <canvas id="floating-loupe-canvas" width="160" height="160"></canvas>
+            <div class="floating-loupe-badge">
+              <span id="floating-loupe-coords">(0, 0)</span>
+              <span id="floating-loupe-swatch" class="mini-swatch"></span>
+              <span id="floating-loupe-hex">#000000</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile Floating Action Button to Open Full Edit Panel -->
+        <button id="btn-floating-sidebar" class="floating-sidebar-btn" title="Buka Panel Fitur & Alat Edit Lengkap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+          </svg>
+          <span>Panel Edit (7 Modul)</span>
+        </button>
+
+        <!-- Drawer Backdrop Overlay -->
+        <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+
+        <!-- Viewport Zoom Controls Floating Bar -->
+        <div class="viewport-controls" id="viewport-controls" style="display: none;">
+          <div class="viewport-tool-group">
+            <button id="btn-tool-pan" class="control-btn active" title="Alat Geser (Move / Pan) — Drag foto untuk menggeser posisi bebas">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 11V6a2 2 0 0 0-4 0v5"></path>
+                <path d="M14 10V4a2 2 0 0 0-4 0v7"></path>
+                <path d="M10 10.5V6a2 2 0 0 0-4 0v8"></path>
+                <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-5.7-2.3L3.6 17a1.5 1.5 0 0 1 .4-2.1l1.5-1.1c.5-.4 1.2-.4 1.7 0L10 16"></path>
+              </svg>
+              <span>Geser (Move)</span>
+            </button>
+            <button id="btn-tool-zoom" class="control-btn" title="Alat Pembesar (Zoom) — Klik foto untuk memperbesar langsung di titik fokus">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                <line x1="11" y1="8" x2="11" y2="14"></line>
+                <line x1="8" y1="11" x2="14" y2="11"></line>
+              </svg>
+              <span>Perbesar (Zoom)</span>
+            </button>
+            <button id="btn-tool-loupe" class="control-btn" title="Kaca Pembesar (Loupe 16x) — Arahkan / klik pada foto untuk detail piksel">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="16"></line>
+                <line x1="8" y1="12" x2="16" y2="12"></line>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <span>Kaca Pembesar</span>
+            </button>
+          </div>
+          <div class="control-divider"></div>
+          <button id="btn-zoom-out" class="control-btn" title="Perkecil">−</button>
+          <span id="zoom-level-text">100%</span>
+          <button id="btn-zoom-in" class="control-btn" title="Perbesar">+</button>
+          <button id="btn-zoom-fit" class="control-btn" title="Sesuaikan Layar (Fit)">Fit</button>
+          <button id="btn-zoom-100" class="control-btn" title="Ukuran 100% (1:1)">1:1</button>
+          <button id="btn-zoom-center" class="control-btn" title="Kembalikan Posisi Tengah">Tengah</button>
+        </div>
+
+        <!-- Bottom Status Bar -->
+        <footer class="status-bar" id="status-bar">
+          <div class="status-left">
+            <span class="status-item" id="status-dims">Dimensi: -</span>
+            <span class="status-item" id="status-coords">Posisi: -</span>
+            <span class="status-item" id="status-raw-size">Ukuran Mentah: -</span>
+          </div>
+          <div class="status-right">
+            <span class="status-item" id="status-color-swatch-wrap">
+              Warna: <span class="mini-swatch" id="status-mini-swatch"></span> <span id="status-color-hex">#------</span>
+            </span>
+            <span class="status-item" id="status-time">Waktu Proses: 0 ms</span>
+            <span class="status-item badge-green" id="status-privacy">Tanpa Server (Local)</span>
+          </div>
+        </footer>
+      </section>
+
+      <!-- Right Sidebar Controls -->
+      <aside class="sidebar" id="sidebar">
+        <!-- Mobile Drawer Header -->
+        <div class="sidebar-mobile-header" id="sidebar-mobile-header">
+          <div class="drawer-drag-pill"></div>
+          <div class="drawer-title-row">
+            <h4>Panel Alat Edit</h4>
+            <div class="mobile-quick-actions">
+              <button id="btn-mobile-undo" class="btn btn-icon btn-sm" title="Undo">↺</button>
+              <button id="btn-mobile-redo" class="btn btn-icon btn-sm" title="Redo">↻</button>
+              <button id="btn-mobile-reset" class="btn btn-icon btn-sm" title="Reset">⟲</button>
+            </div>
+            <button class="close-sidebar-btn" id="btn-close-sidebar">&times;</button>
+          </div>
+        </div>
+        <!-- Module Tabs -->
+        <nav class="sidebar-tabs">
+          <button class="tab-btn active" data-tab="tab-transform">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <polyline points="9 21 3 21 3 15"></polyline>
+              <line x1="21" y1="3" x2="14" y2="10"></line>
+              <line x1="3" y1="21" x2="10" y2="14"></line>
+            </svg>
+            Transformasi
+          </button>
+          <button class="tab-btn" data-tab="tab-color">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="10"></circle>
+              <path d="M12 2a7 7 0 0 0 7 7c0 2-2 3-2 3s.5 1.5 0 3-3 2-5 2a7 7 0 0 1-7-7c0-4.4 3.6-8 7-8z"></path>
+            </svg>
+            Warna
+          </button>
+          <button class="tab-btn" data-tab="tab-inspector">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            Inspektor
+          </button>
+          <button class="tab-btn" data-tab="tab-convolution">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            Konvolusi
+          </button>
+          <button class="tab-btn" data-tab="tab-compression">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="4 14 10 14 10 20"></polyline>
+              <polyline points="20 10 14 10 14 4"></polyline>
+              <line x1="14" y1="10" x2="21" y2="3"></line>
+              <line x1="3" y1="21" x2="10" y2="14"></line>
+            </svg>
+            Kompresi
+          </button>
+          <button class="tab-btn" data-tab="tab-security">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            Keamanan
+          </button>
+          <button class="tab-btn" data-tab="tab-metrics">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+            Metrik
+          </button>
+        </nav>
+
+        <div class="sidebar-content">
+          <!-- ============================================== -->
+          <!-- PANEL 1: TRANSFORMASI (Rafif Naufal Pratama) -->
+          <!-- ============================================== -->
+          <div class="tab-panel active" id="tab-transform">
+            <div class="panel-header">
+              <h3>Transformasi Geometri</h3>
+              <span class="role-badge">Transformasi & Geometri</span>
+            </div>
+
+            <!-- Crop Section -->
+            <div class="control-group">
+              <label class="group-title">Pemotongan (Crop)</label>
+              <div class="btn-grid-4">
+                <button class="btn btn-sm btn-outline active" data-crop-aspect="free">Bebas</button>
+                <button class="btn btn-sm btn-outline" data-crop-aspect="1:1">1 : 1</button>
+                <button class="btn btn-sm btn-outline" data-crop-aspect="4:3">4 : 3</button>
+                <button class="btn btn-sm btn-outline" data-crop-aspect="16:9">16 : 9</button>
+              </div>
+              <div class="btn-group-row mt-2">
+                <button id="btn-start-crop" class="btn btn-primary btn-sm flex-1">Pilih Area Crop</button>
+                <button id="btn-apply-crop" class="btn btn-success btn-sm flex-1" style="display: none;">Terapkan</button>
+                <button id="btn-cancel-crop" class="btn btn-secondary btn-sm flex-1" style="display: none;">Batal</button>
+              </div>
+            </div>
+
+            <!-- Resize Section -->
+            <div class="control-group">
+              <label class="group-title">Sampling Ulang (Resize)</label>
+              <div class="input-row">
+                <div class="input-col">
+                  <span class="input-label">Lebar (px)</span>
+                  <input type="number" id="resize-w" min="1" max="8000" class="text-input">
+                </div>
+                <div class="input-col">
+                  <span class="input-label">Tinggi (px)</span>
+                  <input type="number" id="resize-h" min="1" max="8000" class="text-input">
+                </div>
+              </div>
+              <label class="checkbox-label mt-2">
+                <input type="checkbox" id="resize-aspect-lock" checked>
+                <span>Kunci Rasio Aspek (Aspect Ratio)</span>
+              </label>
+
+              <div class="mt-2">
+                <span class="input-label">Metode Interpolasi:</span>
+                <select id="resize-method" class="select-input mt-1">
+                  <option value="bilinear" selected>Bilinear Interpolation (Halus, 4-Tetangga)</option>
+                  <option value="nearest">Nearest Neighbor (Diskrit, Cepat)</option>
+                </select>
+                <small class="help-text">Sampling ulang piksel menggunakan rumus interpolasi matematika langsung pada kanvas ImageData.</small>
+              </div>
+
+              <button id="btn-apply-resize" class="btn btn-primary btn-sm btn-block mt-2">Terapkan Resize</button>
+            </div>
+
+            <!-- Flip & Rotate Section -->
+            <div class="control-group">
+              <label class="group-title">Orientasi & Rotasi</label>
+              <div class="btn-grid-2">
+                <button id="btn-flip-h" class="btn btn-secondary btn-sm">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+                  Balik Horizontal
+                </button>
+                <button id="btn-flip-v" class="btn btn-secondary btn-sm">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 17 5 21 9 17"></polyline><path d="M11 3H9a4 4 0 0 0-4 4v14"></path><polyline points="23 7 19 3 15 7"></polyline><path d="M13 21h2a4 4 0 0 0 4-4V3"></path></svg>
+                  Balik Vertikal
+                </button>
+              </div>
+              <div class="btn-grid-3 mt-2">
+                <button id="btn-rot-90ccw" class="btn btn-secondary btn-sm">↺ -90°</button>
+                <button id="btn-rot-180" class="btn btn-secondary btn-sm">180°</button>
+                <button id="btn-rot-90cw" class="btn btn-secondary btn-sm">↻ +90°</button>
+              </div>
+
+              <div class="slider-control mt-3">
+                <div class="slider-header">
+                  <span>Rotasi Sudut Bebas</span>
+                  <span id="label-rot-deg" class="slider-val">0°</span>
+                </div>
+                <input type="range" id="slider-rot-deg" min="-180" max="180" value="0" class="range-slider">
+                <button id="btn-apply-rot-deg" class="btn btn-primary btn-sm btn-block mt-1">Terapkan Sudut Bebas</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============================================== -->
+          <!-- PANEL 2: PENGOLAHAN WARNA (Kgs M. Fathurrohman) -->
+          <!-- ============================================== -->
+          <div class="tab-panel" id="tab-color">
+            <div class="panel-header">
+              <h3>Pengolahan Nilai Piksel Warna</h3>
+              <span class="role-badge">Pengolahan & Ruang Warna</span>
+            </div>
+
+            <!-- Filter Cepat -->
+            <div class="control-group">
+              <label class="group-title">Filter Cepat</label>
+              <div class="btn-grid-2">
+                <button id="btn-apply-grayscale" class="btn btn-secondary btn-sm" title="Y = 0.299R + 0.587G + 0.114B">
+                  Grayscale (NTSC)
+                </button>
+                <button id="btn-apply-invert" class="btn btn-secondary btn-sm" title="255 - Nilai Kanal">
+                  Invert (Negatif)
+                </button>
+              </div>
+              <small class="formula-box mt-2">
+                Rumus Luminansi Grayscale: <code>Y = 0.299R + 0.587G + 0.114B</code>
+              </small>
+            </div>
+
+            <!-- Brightness & Contrast -->
+            <div class="control-group">
+              <label class="group-title">Kecerahan & Kontras</label>
+
+              <div class="slider-control">
+                <div class="slider-header">
+                  <span>Kecerahan (Brightness)</span>
+                  <span id="label-brightness" class="slider-val">0</span>
+                </div>
+                <input type="range" id="slider-brightness" min="-100" max="100" value="0" class="range-slider">
+              </div>
+
+              <div class="slider-control mt-2">
+                <div class="slider-header">
+                  <span>Kontras (Contrast)</span>
+                  <span id="label-contrast" class="slider-val">0</span>
+                </div>
+                <input type="range" id="slider-contrast" min="-100" max="100" value="0" class="range-slider">
+              </div>
+
+              <button id="btn-apply-bc" class="btn btn-primary btn-sm btn-block mt-2">Terapkan Kecerahan & Kontras</button>
+            </div>
+
+            <!-- Hue & Saturation (HSI) -->
+            <div class="control-group">
+              <label class="group-title">Warna HSI (Hue & Saturation)</label>
+              <small class="help-text">Dihitung manual per piksel dengan konversi: RGB → HSI → Modifikasi → RGB.</small>
+
+              <div class="slider-control mt-2">
+                <div class="slider-header">
+                  <span>Pergeseran Corak (Hue Shift)</span>
+                  <span id="label-hue" class="slider-val">0°</span>
+                </div>
+                <input type="range" id="slider-hue" min="-180" max="180" value="0" class="range-slider">
+              </div>
+
+              <div class="slider-control mt-2">
+                <div class="slider-header">
+                  <span>Kejenuhan (Saturation Factor)</span>
+                  <span id="label-sat" class="slider-val">1.0x</span>
+                </div>
+                <input type="range" id="slider-sat" min="0" max="30" value="10" class="range-slider">
+              </div>
+
+              <button id="btn-apply-hsi" class="btn btn-primary btn-sm btn-block mt-2">Terapkan Hue & Saturation</button>
+            </div>
+
+            <!-- Kedalaman Bit (Bit Depth Quantization) -->
+            <div class="control-group">
+              <label class="group-title">Pengurangan Kedalaman Bit (Kuantisasi)</label>
+              <div class="slider-control">
+                <div class="slider-header">
+                  <span>Kedalaman Bit per Kanal</span>
+                  <span id="label-bit-depth" class="slider-val">8-bit (256 level)</span>
+                </div>
+                <input type="range" id="slider-bit-depth" min="1" max="8" value="8" class="range-slider">
+              </div>
+              <small class="help-text" id="bit-depth-info">Total warna: 16.777.216 warna (24-bit TrueColor)</small>
+              <button id="btn-apply-bit-depth" class="btn btn-primary btn-sm btn-block mt-2">Terapkan Kuantisasi Bit</button>
+            </div>
+
+            <!-- Preset Sinematik & Estetik -->
+            <div class="control-group">
+              <label class="group-title">Preset Sinematik & Estetik</label>
+              <div class="btn-grid-2">
+                <button class="btn btn-secondary btn-sm" data-preset="sepia" title="Kesan Klasik Nostalgia">☕ Sepia Klasik</button>
+                <button class="btn btn-secondary btn-sm" data-preset="cyberpunk" title="Teal Shadows & Orange Highlights">🌆 Cyberpunk</button>
+                <button class="btn btn-secondary btn-sm" data-preset="vintage" title="Warm Faded Film Tone">🎞️ Vintage Film</button>
+                <button class="btn btn-secondary btn-sm" data-preset="emerald" title="Lush Greenery Vibrancy">🌲 Emerald Forest</button>
+                <button class="btn btn-secondary btn-sm" data-preset="noir" title="Hitam-putih berkontras tinggi">◼️ Noir Dramatic</button>
+                <button class="btn btn-secondary btn-sm" data-preset="sunset" title="Nuansa hangat matahari terbenam">🌅 Golden Sunset</button>
+                <button class="btn btn-secondary btn-sm" data-preset="arctic" title="Nuansa dingin biru-teal">❄️ Arctic Blue</button>
+                <button class="btn btn-secondary btn-sm" data-preset="vivid" title="Saturasi warna lebih hidup">✨ Vivid Color</button>
+              </div>
+            </div>
+
+            <!-- Creative Lab: Efek gabungan -->
+            <div class="control-group">
+              <label class="group-title">Creative Lab — Efek Gabungan</label>
+
+              <div class="slider-control">
+                <div class="slider-header">
+                  <span>Suasana Suhu</span>
+                  <span id="label-creative-temp" class="slider-val">0</span>
+                </div>
+                <input type="range" id="slider-creative-temp" min="-100" max="100" value="0" class="range-slider">
+              </div>
+
+              <div class="slider-control mt-2">
+                <div class="slider-header">
+                  <span>Vignette</span>
+                  <span id="label-creative-vignette" class="slider-val">0%</span>
+                </div>
+                <input type="range" id="slider-creative-vignette" min="0" max="100" value="0" class="range-slider">
+              </div>
+
+              <div class="slider-control mt-2">
+                <div class="slider-header">
+                  <span>Film Grain</span>
+                  <span id="label-creative-grain" class="slider-val">0%</span>
+                </div>
+                <input type="range" id="slider-creative-grain" min="0" max="100" value="0" class="range-slider">
+              </div>
+
+              <div class="slider-control mt-2">
+                <div class="slider-header">
+                  <span>Posterisasi</span>
+                  <span id="label-creative-posterize" class="slider-val">32 level</span>
+                </div>
+                <input type="range" id="slider-creative-posterize" min="2" max="32" value="32" class="range-slider">
+              </div>
+
+              <div class="slider-control mt-2">
+                <div class="slider-header">
+                  <span>Film Fade</span>
+                  <span id="label-creative-fade" class="slider-val">0%</span>
+                </div>
+                <input type="range" id="slider-creative-fade" min="0" max="100" value="0" class="range-slider">
+              </div>
+
+              <div class="btn-grid-2 mt-2">
+                <button id="btn-reset-creative" class="btn btn-secondary btn-sm">Reset Efek</button>
+                <button id="btn-apply-creative" class="btn btn-primary btn-sm">Terapkan Creative Lab</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============================================== -->
+          <!-- PANEL 3: ANALISIS & INSPEKTOR (Kgs Muhammad F.)-->
+          <!-- ============================================== -->
+          <div class="tab-panel" id="tab-inspector">
+            <div class="panel-header">
+              <h3>Inspektor Piksel & Ruang Warna</h3>
+              <span class="role-badge">Inspektor Piksel & Analisis Warna</span>
+            </div>
+
+            <!-- Loupe Magnifier Canvas -->
+            <div class="control-group">
+              <label class="group-title">Magnifying Loupe (Grid Diskrit 9x9)</label>
+              <div class="loupe-container">
+                <canvas id="loupe-canvas" width="162" height="162"></canvas>
+                <div class="loupe-info">
+                  <div class="swatch-large" id="inspector-swatch"></div>
+                  <div class="loupe-meta">
+                    <span id="inspect-coords">Koordinat: (-, -)</span>
+                    <span id="inspect-hex" class="hex-badge">#------</span>
+                  </div>
+                </div>
+              </div>
+              <small class="help-text text-center">Gerakkan kursor atau klik di atas kanvas citra untuk menginspeksi.</small>
+            </div>
+
+            <!-- Color Model Readouts -->
+            <div class="control-group">
+              <label class="group-title">Konversi Ruang Warna Piksel</label>
+
+              <!-- RGB -->
+              <div class="color-readout-card">
+                <div class="card-head"><strong>Model RGB</strong> <span>(Red, Green, Blue)</span></div>
+                <div class="card-vals" id="val-rgb">R: - | G: - | B: - | A: -</div>
+              </div>
+
+              <!-- CMYK -->
+              <div class="color-readout-card">
+                <div class="card-head"><strong>Model CMYK</strong> <span>(Subtraktif Cetak)</span></div>
+                <div class="card-vals" id="val-cmyk">C: -% | M: -% | Y: -% | K: -%</div>
+              </div>
+
+              <!-- HSI -->
+              <div class="color-readout-card">
+                <div class="card-head"><strong>Model HSI</strong> <span>(Persepsi Manusia)</span></div>
+                <div class="card-vals" id="val-hsi">H: -° | S: -% | I: -</div>
+              </div>
+
+              <!-- YIQ -->
+              <div class="color-readout-card">
+                <div class="card-head"><strong>Model YIQ</strong> <span>(Sistem NTSC)</span></div>
+                <div class="card-vals" id="val-yiq">Y: - | I: - | Q: -</div>
+              </div>
+
+              <!-- YCbCr -->
+              <div class="color-readout-card">
+                <div class="card-head"><strong>Model YCbCr</strong> <span>(Digital BT.601)</span></div>
+                <div class="card-vals" id="val-ycbcr">Y: - | Cb: - | Cr: -</div>
+              </div>
+            </div>
+
+            <!-- Channel Split Viewer -->
+            <div class="control-group">
+              <label class="group-title">Tampilan Per Kanal Warna</label>
+              <select id="channel-view-select" class="select-input">
+                <option value="all" selected>Semua Kanal (RGB Lengkap)</option>
+                <option value="red">Kanal Merah Saja (Red Only)</option>
+                <option value="green">Kanal Hijau Saja (Green Only)</option>
+                <option value="blue">Kanal Biru Saja (Blue Only)</option>
+                <option value="red-mono">Kanal Merah (Tampilan Monokrom)</option>
+                <option value="green-mono">Kanal Hijau (Tampilan Monokrom)</option>
+                <option value="blue-mono">Kanal Biru (Tampilan Monokrom)</option>
+                <option value="y-luminance">Kanal Luminansi Y (NTSC Grayscale)</option>
+              </select>
+              <button id="btn-apply-channel-view" class="btn btn-secondary btn-sm btn-block mt-2">Pratinjau Kanal Terpilih</button>
+            </div>
+
+            <!-- Interactive Live Histogram & Equalization -->
+            <div class="control-group">
+              <div class="group-header-row">
+                <label class="group-title">Histogram Citra Interaktif</label>
+                <div class="hist-tabs">
+                  <button class="hist-tab-btn active" data-hist-mode="all">Semua</button>
+                  <button class="hist-tab-btn" data-hist-mode="rgb">RGB</button>
+                  <button class="hist-tab-btn" data-hist-mode="y">Y</button>
+                </div>
+              </div>
+              <div class="histogram-wrapper">
+                <canvas id="histogram-canvas" width="310" height="100"></canvas>
+              </div>
+              <div class="hist-stats-row">
+                <span>Kecerahan Rata-rata: <strong id="hist-mean-lum" class="text-cyan">-</strong></span>
+                <span>Entropi Shannon: <strong id="hist-entropy" class="text-cyan">-</strong></span>
+              </div>
+              <div class="btn-grid-2 mt-2">
+                <button id="btn-hist-equalize" class="btn btn-primary btn-sm" title="Meratakan kontras citra adaptif berbasis CDF">
+                  Ekualisasi Histogram
+                </button>
+                <button id="btn-contrast-stretch" class="btn btn-secondary btn-sm" title="Membentangkan nilai piksel ke rentang penuh [0, 255]">
+                  Peregangan Kontras
+                </button>
+              </div>
+              <small class="help-text">Ekualisasi memetakan fungsi distribusi kumulatif (CDF) agar kontras citra merata secara adaptif.</small>
+            </div>
+          </div>
+
+          <!-- ============================================== -->
+          <!-- PANEL: KONVOLUSI SPASIAL (Kernel Processing)   -->
+          <!-- ============================================== -->
+          <div class="tab-panel" id="tab-convolution">
+            <div class="panel-header">
+              <h3>Konvolusi Spasial & Matriks Kernel</h3>
+              <span class="role-badge">Sistem Multimedia • Pemfilteran Spasial</span>
+            </div>
+
+            <!-- Preset Konvolusi -->
+            <div class="control-group">
+              <label class="group-title">Preset Filter Konvolusi 3x3</label>
+              <div class="btn-grid-2">
+                <button class="btn btn-secondary btn-sm" data-kernel="gaussianBlur">🌫️ Gaussian Blur</button>
+                <button class="btn btn-secondary btn-sm" data-kernel="boxBlur">📦 Box Blur 3x3</button>
+                <button class="btn btn-secondary btn-sm" data-kernel="sharpen">🗡️ Penajaman (Sharpen)</button>
+                <button class="btn btn-secondary btn-sm" data-kernel="sobel">⚡ Sobel Edge Detector</button>
+                <button class="btn btn-secondary btn-sm" data-kernel="emboss">🗿 Emboss 3D (Relief)</button>
+                <button class="btn btn-secondary btn-sm" data-kernel="laplacian">🔍 Laplacian Edge</button>
+              </div>
+              <small class="help-text mt-1">Konvolusi 2D menghitung perkalian berbobot kernel terhadap piksel tetangga spasial.</small>
+            </div>
+
+            <!-- Custom 3x3 Kernel Matrix Editor -->
+            <div class="control-group">
+              <div class="group-header-row">
+                <label class="group-title">Editor Matriks Kernel 3x3</label>
+                <button class="btn btn-ghost btn-xs text-cyan" id="btn-reset-kernel" title="Reset ke Matriks Identitas">
+                  Reset (Identitas)
+                </button>
+              </div>
+              <small class="help-text">Ketik angka bobot kernel 3x3 secara bebas. Kotak tengah bertindak sebagai bobot piksel fokus (0, 0).</small>
+
+              <!-- Mathematical Matrix Bracket Container -->
+              <div class="matrix-bracket-container">
+                <span class="matrix-bracket bracket-left">[</span>
+                <div class="kernel-matrix-grid">
+                  <div class="cell-wrapper"><input type="number" id="k00" value="0" class="kernel-cell" step="any"></div>
+                  <div class="cell-wrapper"><input type="number" id="k01" value="-1" class="kernel-cell" step="any"></div>
+                  <div class="cell-wrapper"><input type="number" id="k02" value="0" class="kernel-cell" step="any"></div>
+                  <div class="cell-wrapper"><input type="number" id="k10" value="-1" class="kernel-cell" step="any"></div>
+                  <div class="cell-wrapper"><input type="number" id="k11" value="5" class="kernel-cell highlight-cell" step="any" title="Piksel Pusat (0,0)"></div>
+                  <div class="cell-wrapper"><input type="number" id="k12" value="-1" class="kernel-cell" step="any"></div>
+                  <div class="cell-wrapper"><input type="number" id="k20" value="0" class="kernel-cell" step="any"></div>
+                  <div class="cell-wrapper"><input type="number" id="k21" value="-1" class="kernel-cell" step="any"></div>
+                  <div class="cell-wrapper"><input type="number" id="k22" value="0" class="kernel-cell" step="any"></div>
+                </div>
+                <span class="matrix-bracket bracket-right">]</span>
+              </div>
+
+              <!-- Parameter Normalisasi & Bias -->
+              <div class="input-row mt-2">
+                <div class="input-col">
+                  <span class="input-label">Pembagi (Divisor)</span>
+                  <input type="number" id="kernel-divisor" value="1" min="0.001" step="any" class="text-input text-center">
+                </div>
+                <div class="input-col">
+                  <span class="input-label">Bias Offset</span>
+                  <input type="number" id="kernel-bias" value="0" step="any" class="text-input text-center">
+                </div>
+              </div>
+
+              <button id="btn-apply-custom-kernel" class="btn btn-primary btn-sm btn-block mt-3">
+                Terapkan Matriks Konvolusi Kustom
+              </button>
+            </div>
+          </div>
+
+          <!-- ============================================== -->
+          <!-- PANEL 5: KOMPRESI & CHROMA                     -->
+          <!-- ============================================== -->
+          <div class="tab-panel" id="tab-compression">
+            <div class="panel-header">
+              <h3>Kompresi & Chroma Subsampling</h3>
+              <span class="role-badge">Kompresi & Chroma Subsampling</span>
+            </div>
+
+            <!-- Chroma Subsampling Section -->
+            <div class="control-group">
+              <label class="group-title">Simulasi Chroma Subsampling</label>
+              <div class="btn-grid-3">
+                <button class="btn btn-sm btn-outline active" data-subsampling="4:4:4">4 : 4 : 4</button>
+                <button class="btn btn-sm btn-outline" data-subsampling="4:2:2">4 : 2 : 2</button>
+                <button class="btn btn-sm btn-outline" data-subsampling="4:2:0">4 : 2 : 0</button>
+              </div>
+
+              <div class="info-box mt-2" id="subsampling-desc">
+                <strong>4:4:4 (Full Chroma)</strong>: Tidak ada kompresi warna, setiap piksel memiliki Cb & Cr lengkap.
+              </div>
+
+              <button id="btn-apply-subsampling" class="btn btn-primary btn-sm btn-block mt-2">
+                Simulasikan Subsampling Pada Kanvas
+              </button>
+            </div>
+
+            <!-- Export Parameter Section -->
+            <div class="control-group">
+              <label class="group-title">Pengaturan Enkode & Format Ekspor</label>
+
+              <div class="format-radios mt-1">
+                <label class="radio-label">
+                  <input type="radio" name="export-format" value="image/jpeg" checked>
+                  <span>JPEG (Lossy)</span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="export-format" value="image/webp">
+                  <span>WebP (Modern)</span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="export-format" value="image/png">
+                  <span>PNG (Lossless)</span>
+                </label>
+              </div>
+
+              <div class="slider-control mt-3" id="quality-slider-group">
+                <div class="slider-header">
+                  <span>Kualitas Kompresi (Quality)</span>
+                  <span id="label-export-quality" class="slider-val">85%</span>
+                </div>
+                <input type="range" id="slider-export-quality" min="1" max="100" value="85" class="range-slider">
+              </div>
+
+              <button id="btn-run-compression-test" class="btn btn-secondary btn-sm btn-block mt-2">
+                Hitung Estimasi Kompresi Real-Time
+              </button>
+            </div>
+
+            <!-- Real-time Compression Comparison Card -->
+            <div class="control-group">
+              <label class="group-title">Hasil Uji Kompresi</label>
+              <div class="compression-results">
+                <div class="comp-row">
+                  <span>Ukuran Citra Mentah:</span>
+                  <strong id="comp-raw-size">-</strong>
+                </div>
+                <div class="comp-row">
+                  <span>Ukuran File Asli:</span>
+                  <strong id="comp-orig-size">-</strong>
+                </div>
+                <div class="comp-row highlight">
+                  <span>Ukuran File Terkompresi:</span>
+                  <strong id="comp-result-size">-</strong>
+                </div>
+                <div class="comp-row">
+                  <span>Penghematan vs Asli:</span>
+                  <strong id="comp-savings-orig">-</strong>
+                </div>
+                <div class="comp-row">
+                  <span>Rasio vs Citra Mentah:</span>
+                  <strong id="comp-ratio-raw">-</strong>
+                </div>
+              </div>
+
+              <button id="btn-download-compressed" class="btn btn-success btn-sm btn-block mt-3">
+                Unduh Citra Hasil Kompresi
+              </button>
+            </div>
+          </div>
+
+          <!-- ============================================== -->
+          <!-- PANEL 5: KEAMANAN & WATERMARK (Shevandry H.)   -->
+          <!-- ============================================== -->
+          <div class="tab-panel" id="tab-security">
+            <div class="panel-header">
+              <h3>Keamanan & Watermark Citra</h3>
+              <span class="role-badge">Keamanan, Privasi & Watermark</span>
+            </div>
+
+            <!-- EXIF Sanitization Card -->
+            <div class="control-group">
+              <label class="group-title">Sanitasi Metadata EXIF & Privasi</label>
+
+              <div class="security-card" id="exif-card">
+                <div class="security-status-badge badge-green" id="exif-badge">
+                  ✓ EXIF Aman & Terhapus Otomatis
+                </div>
+                <p id="exif-status-detail" class="mt-2 text-sm">
+                  Saat citra dimuat ke dalam kanvas, peramban (browser) mendekompresi piksel murni tanpa menyimpan tag EXIF. Seluruh data GPS lokasi rahasia, serial kamera, dan waktu pengambilan otomatis dihapus saat pengunduhan.
+                </p>
+                <div class="exif-table-preview mt-2" id="exif-tag-list">
+                  <div class="exif-row"><span>Tag GPS Lokasi:</span> <strong class="text-green">Dihapus (0 byte)</strong></div>
+                  <div class="exif-row"><span>Info Perangkat/HP:</span> <strong class="text-green">Dihapus (0 byte)</strong></div>
+                  <div class="exif-row"><span>Kerahasiaan KTP/Foto:</span> <strong class="text-green">Terjamin 100%</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Text Watermark Section -->
+            <div class="control-group">
+              <label class="group-title">Watermark Teks Kustom</label>
+
+              <div class="mt-1">
+                <span class="input-label">Teks Tanda Air (Watermark):</span>
+                <input type="text" id="watermark-text" value="DOKUMEN RAHASIA / CONFIDENTIAL" class="text-input mt-1">
+              </div>
+
+              <div class="mt-2">
+                <span class="input-label">Posisi Penempatan:</span>
+                <select id="watermark-pos" class="select-input mt-1">
+                  <option value="bottom-right" selected>Pojok Kanan Bawah</option>
+                  <option value="bottom-left">Pojok Kiri Bawah</option>
+                  <option value="top-right">Pojok Kanan Atas</option>
+                  <option value="top-left">Pojok Kiri Atas</option>
+                  <option value="center">Tepat di Tengah</option>
+                  <option value="tile">Pola Ubin Diagonal (Repeated Tile)</option>
+                </select>
+              </div>
+
+              <div class="input-row mt-2">
+                <div class="input-col">
+                  <span class="input-label">Ukuran Font (px)</span>
+                  <input type="number" id="watermark-size" value="28" min="10" max="150" class="text-input">
+                </div>
+                <div class="input-col">
+                  <span class="input-label">Warna Teks</span>
+                  <input type="color" id="watermark-color" value="#ffffff" class="color-picker-input">
+                </div>
+              </div>
+
+              <div class="slider-control mt-2">
+                <div class="slider-header">
+                  <span>Transparansi (Opasitas)</span>
+                  <span id="label-wm-opacity" class="slider-val">75%</span>
+                </div>
+                <input type="range" id="slider-wm-opacity" min="10" max="100" value="75" class="range-slider">
+              </div>
+
+              <div class="slider-control mt-2">
+                <div class="slider-header">
+                  <span>Sudut Rotasi Teks</span>
+                  <span id="label-wm-rot" class="slider-val">0°</span>
+                </div>
+                <input type="range" id="slider-wm-rot" min="-90" max="90" value="0" class="range-slider">
+              </div>
+
+              <label class="checkbox-label mt-2">
+                <input type="checkbox" id="watermark-badge-toggle" checked>
+                <span>Gunakan Latar Belakang Kotak Transparan</span>
+              </label>
+
+              <button id="btn-apply-watermark" class="btn btn-primary btn-sm btn-block mt-3">
+                Terapkan Watermark Pada Kanvas
+              </button>
+            </div>
+
+            <!-- Sensor Privasi Pikselasi (Redaction Tool) -->
+            <div class="control-group">
+              <label class="group-title">Sensor Privasi Pikselasi (KTP / Wajah)</label>
+              <small class="help-text">Sensor nomor NIK, tanda tangan, atau wajah untuk perlindungan data pribadi sebelum diunggah.</small>
+
+              <div class="slider-control mt-2">
+                <div class="slider-header">
+                  <span>Ukuran Blok Sensor</span>
+                  <span id="label-sensor-block" class="slider-val">12 px</span>
+                </div>
+                <input type="range" id="slider-sensor-block" min="6" max="32" value="12" class="range-slider">
+              </div>
+
+              <div class="btn-group-row mt-2">
+                <button id="btn-start-sensor" class="btn btn-primary btn-sm flex-1">Pilih Area Sensor</button>
+                <button id="btn-apply-sensor" class="btn btn-success btn-sm flex-1" style="display: none;">Terapkan Sensor</button>
+                <button id="btn-cancel-sensor" class="btn btn-secondary btn-sm flex-1" style="display: none;">Batal</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============================================== -->
+          <!-- PANEL 6: METRIK & EKSPERIMEN (Ardian Satriana) -->
+          <!-- ============================================== -->
+          <div class="tab-panel" id="tab-metrics">
+            <div class="panel-header">
+              <h3>Metrik Kualitas & Eksperimen</h3>
+              <span class="role-badge">Pengukuran & Evaluasi Kualitas</span>
+            </div>
+
+            <!-- PSNR Card -->
+            <div class="control-group">
+              <label class="group-title">Pengukuran PSNR (Peak Signal-to-Noise Ratio)</label>
+              <div class="metric-big-card">
+                <div class="metric-val" id="metric-psnr-val">-- dB</div>
+                <div class="metric-sub" id="metric-psnr-quality">Belum ada pengolahan</div>
+                <div class="metric-formula mt-2">
+                  <span>MSE: <strong id="metric-mse-val">-</strong></span>
+                  <span class="divider-dot">•</span>
+                  <span>Evaluasi: <strong id="metric-psnr-eval">-</strong></span>
+                </div>
+              </div>
+              <small class="help-text mt-2">
+                PSNR mengukur rasio daya sinyal maksimum terhadap derau/kebisingan hasil kompresi atau transformasi dibandingkan dengan citra referensi asli.
+              </small>
+            </div>
+
+            <!-- Complete Measurements Table -->
+            <div class="control-group">
+              <label class="group-title">Rangkuman Data Citra</label>
+              <table class="metrics-table">
+                <tbody>
+                  <tr>
+                    <td>Dimensi Citra</td>
+                    <td id="m-table-dims">-</td>
+                  </tr>
+                  <tr>
+                    <td>Total Piksel</td>
+                    <td id="m-table-pixels">-</td>
+                  </tr>
+                  <tr>
+                    <td>Ukuran Mentah (W×H×3)</td>
+                    <td id="m-table-raw">-</td>
+                  </tr>
+                  <tr>
+                    <td>Ukuran File Asli</td>
+                    <td id="m-table-orig">-</td>
+                  </tr>
+                  <tr>
+                    <td>Ukuran File Terkompresi</td>
+                    <td id="m-table-comp">-</td>
+                  </tr>
+                  <tr>
+                    <td>Rasio Penghematan</td>
+                    <td id="m-table-ratio">-</td>
+                  </tr>
+                  <tr>
+                    <td>Waktu Pemrosesan Terakhir</td>
+                    <td id="m-table-time">-</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Scientific Formula Explanation -->
+            <div class="control-group">
+              <label class="group-title">Dasar Teori Multimedia</label>
+              <div class="theory-box">
+                <div class="theory-title">1. Rumus MSE & PSNR</div>
+                <div class="theory-code">
+                  MSE = 1 / (3·W·H) × Σ [(R-R')² + (G-G')² + (B-B')²]<br>
+                  PSNR = 10 · log10( 255² / MSE ) dB
+                </div>
+
+                <div class="theory-title mt-2">2. Ukuran Mentah Uncompressed</div>
+                <div class="theory-code">
+                  Ukuran = Lebar × Tinggi × 3 Byte (RGB 24-bit)
+                </div>
+
+                <div class="theory-title mt-2">3. Subsampling Chroma</div>
+                <div class="theory-code">
+                  4:2:2 = Cb, Cr dirata-rata 2x1 horizontal<br>
+                  4:2:0 = Cb, Cr dirata-rata 2x2 blok piksel
+                </div>
+              </div>
+            </div>
+
+            <!-- Export Analysis Report -->
+            <div class="control-group">
+              <label class="group-title">Laporan Analisis Ilmiah Multimedia</label>
+              <button id="btn-print-report" class="btn btn-primary btn-sm btn-block" title="Cetak atau simpan laporan analisis citra">
+                📄 Cetak / Simpan Laporan Analisis Lengkap
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- Global Fullscreen Drag & Drop Overlay -->
+    <div class="drag-drop-overlay" id="global-drag-overlay" style="display: none;">
+      <div class="drag-drop-card">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="17 8 12 3 7 8"></polyline>
+          <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+        <h3>Lepaskan Foto di Sini</h3>
+        <p>Foto akan langsung dimuat ke editor kanvas secara instan</p>
+      </div>
+    </div>
+
+    <!-- Camera / Webcam Capture Modal -->
+    <div class="modal-backdrop" id="camera-modal" style="display: none;">
+      <div class="modal-card camera-modal-card">
+        <div class="modal-header">
+          <h3>Ambil Foto dari Kamera / Webcam</h3>
+          <button class="modal-close-btn" id="btn-close-camera">&times;</button>
+        </div>
+        <div class="modal-body text-center">
+          <div class="video-container">
+            <video id="camera-video" autoplay playsinline></video>
+          </div>
+          <p class="text-sm text-muted mt-2" id="camera-status">Mengaktifkan kamera...</p>
+          <div class="modal-actions mt-3">
+            <button class="btn btn-secondary" id="btn-cancel-camera">Batal</button>
+            <button class="btn btn-primary btn-lg" id="btn-capture-photo">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              Jepret Foto
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Project Team & Proposal Modal -->
+    <div class="modal-backdrop" id="team-modal" style="display: none;">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Tentang Editor Citra Berbasis Web</h3>
+          <button class="modal-close-btn" id="btn-close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <h4>Studio Pengolahan & Kompresi Citra Berbasis Web</h4>
+          <p class="text-sm text-muted">Aplikasi pengolahan citra digital profesional berorientasi privasi (100% Client-Side). Seluruh kalkulasi matematika piksel, transformasi, konversi ruang warna, dan kompresi dieksekusi langsung di browser tanpa mengirim data ke server.</p>
+
+          <h5 class="mt-3">Fitur & Arsitektur Utama:</h5>
+          <ul class="team-list">
+            <li>
+              <strong>Transformasi Geometri</strong>
+              <span>Pemotongan (Crop) bebas & preset rasio, sampling ulang Bilinear & Nearest Neighbor, serta rotasi orientasi bebas.</span>
+            </li>
+            <li>
+              <strong>Pengolahan & Ruang Warna</strong>
+              <span>Grayscale NTSC, Invert, Kecerahan/Kontras, model warna HSI, CMYK, YIQ, YCbCr, kuantisasi bit depth, dan preset sinematik.</span>
+            </li>
+            <li>
+              <strong>Histogram & Konvolusi Spasial</strong>
+              <span>Histogram interaktif RGB/Y, Ekualisasi Histogram adaptif, filter Gaussian Blur, Box Blur, Sharpen, Sobel Edge, Emboss 3D, dan kernel 3x3 kustom.</span>
+            </li>
+            <li>
+              <strong>Kompresi & Chroma Subsampling</strong>
+              <span>Simulasi perataan Cb/Cr 4:2:2 & 4:2:0, ekspor JPEG, WebP, PNG, estimasi penghematan file, dan ukuran mentah uncompressed.</span>
+            </li>
+            <li>
+              <strong>Keamanan, Privasi & Metrik Kualitas</strong>
+              <span>Sanitasi metadata EXIF otomatis, watermark teks kustom, sensor privasi pikselasi (KTP/wajah), dan pengukuran PSNR/MSE real-time.</span>
+            </li>
+          </ul>
+
+          <div class="dist-info mt-3">
+            <strong>Keamanan & Privasi Terjamin:</strong> Tidak ada berkas foto yang diunggah ke jaringan internet. Pemrosesan citra sepenuhnya berlangsung di memori lokal peramban Anda.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/color-models.js"></script>
+  <script src="js/transformations.js"></script>
+  <script src="js/compression.js"></script>
+  <script src="js/security.js"></script>
+  <script src="js/inspector.js"></script>
+  <script src="js/filters-convolution.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
